@@ -7,8 +7,8 @@ export const AuthContext = createContext();
 export function AuthProvider({ children }) {
     const [currentUser, setCurrentUser] = useState(null);
     const [loading, setLoading] = useState(true);
-    const [posts, setPosts] = useState([]);
-    const [postsLoading, setPostsLoading] = useState(true);
+    const [classes, setClasses] = useState([]);
+    const [classLoading, setClassLoading] = useState(true);
 
     useEffect(() => {
         return auth.onAuthStateChanged((user) => {
@@ -17,86 +17,79 @@ export function AuthProvider({ children }) {
         });
     }, []);
 
-    const fetchPostsByUser = useCallback(async (userId) => {
-        setPostsLoading(true);
-        try {
-            const postsRef = collection(db, `users/${userId}/posts`);
-            const querySnapshot = await getDocs(postsRef);
-            const docs = querySnapshot.docs.map((doc) => ({
-                id: doc.id,
-                ...doc.data(),
-            }));
-            setPosts(docs);
-        } catch (error) {
-            console.error(error);
-        } finally {
-            setPostsLoading(false);
-        }
+    const uploadFile = useCallback(async (file) => {
+        const storageRef = ref(Storage, `classes/${file.name}`);
+        const response = await uploadBytes(storageRef, file);
+        const url = await getDownloadURL(response.ref);
+        return url;
     }, []);
 
-    const savePost = useCallback(async (userId, postContent) => {
+    const saveCard = useCallback(async ( cardContent, file) => {
         try {
-            const postsRef = collection(db, `users/${userId}/posts`);
-            const newPostsRef = doc(postsRef);
-            await setDoc(newPostsRef, { content: postContent, likes: [] });
-            const newPost = await getDoc(newPostsRef);
-            const post = {
-                id: newPost.id,
-                ...newPost.data(),
-            };
-            setPosts((prev) => [post, ...prev]);
-        } catch (error) {
-            console.error(error);
-        }
-    }, []);
-
-    const likePost = useCallback(async (userId, postId) => {
-        try {
-            const postRef = doc(db, `users/${userId}/posts/${postId}`);
-            const docSnap = await getDoc(postRef);
-
-            if (docSnap.exists()) {
-                const postData = docSnap.data();
-                const likes = [...(postData.likes || []), userId];
-                await setDoc(postRef, { ...postData, likes });
-
-                setPosts((prev) => 
-                    prev.map((post) => (post.id === postId ? { ...post, likes } : post))
-                );
+            let imageUrl = null;
+            if (file) {
+                imageUrl = await uploadFile(file);
             }
+
+            const cardRef = collection(db, `classes`);
+            const newCardRef = doc(cardRef);
+            await setDoc(newCardRef, { content: cardContent, likes: [], imageUrl });
+            const newCard = await getDoc(newCardRef);
+            
+            setPosts((prev) => [{ id: newCard.id, ...newCard.data() }, ...prev]);
         } catch (error) {
             console.error(error);
         }
-    }, []);
+    }, [uploadFile]);
 
-    const removeLikeFromPost = useCallback(async (userId, postId) => {
-        try {
-            const postRef = doc(db, `users/${userId}/posts/${postId}`);
-            const docSnap = await getDoc(postRef);
+    const updateCard = useCallback(
+        async (classId, newPostContent, newFile) => {
+            try {
+                const cardRef = doc(db, `classes/${classId}`);
+                const cardSnap = await getDoc(cardRef);
+                if (!cardSnap.exists()) throw new Error("Class does not exist");
 
-            if (docSnap.exists()) {
-                const postData = docSnap.data();
-                const likes = (postData.likes || []).filter((id) => id !== userId);
-                await setDoc(postRef, { ...postData, likes });
+                let newImageUrl = null;
+                if (newFile) {
+                    newImageUrl = await uploadFile(newFile);
+                }
 
-                setPosts((prev) => 
-                    prev.map((post) => (post.id === postId ? { ...post, likes } : post))
+                const cardData = cardSnap.data();
+                const updatedData = {
+                    ...cardData,
+                    content: newCardContent || cardData.content,
+                    imageUrl: newImageUrl || cardData.imageUrl,
+                };
+
+                await updateDoc(cardRef, updatedData);
+
+                setClasses((prev) => 
+                    prev.map((p) => (p.id === classId ? { id: classId, ...updatedData } : p))
                 );
-            } 
+            } catch (error) {
+                console.error(error);
+            }
+        }, [uploadFile]
+    );
+
+    const deleteCard = useCallback(async (classId) => {
+        try {
+            const cardRef = doc(db, `classes${classId}`);
+            await deleteDoc(cardRef);
+
+            setClasses((prev) => prev.filter((card) => card.id !== classId));
         } catch (error) {
             console.error(error);
         }
     }, []);
 
-
-    const value = { 
+    const value = {
         currentUser,
-        posts,
-        postsLoading,
-        fetchPostsByUser,
-        savePost,
-        likePost,
-        removeLikeFromPost,
+        classes,
+        classLoading,
+        saveCard,
+        updateCard,
+        deleteCard,
     };
 
     return (

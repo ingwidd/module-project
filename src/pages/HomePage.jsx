@@ -3,6 +3,7 @@ import { useContext } from "react";
 import { AuthContext } from "../components/AuthProvider";
 import { Container, Row, Col, Navbar, Nav } from "react-bootstrap";
 import { useNavigate } from "react-router-dom";
+import ClassCards from "../components/ClassCards";
 
 export default function HomePage() {
     const auth = getAuth();
@@ -48,6 +49,15 @@ export default function HomePage() {
                 <p className="lead">Find your balance. Book your class today.</p>
                 <button className="btn btn-light btn-lg mt-3">Book a Class</button>
             </div>
+            <br />
+            <ClassCards />
         </div>
     );
 }
+
+/* Todo:
+1. Add button for making class cards
+2. Make sure user's home page cannot add cards
+3. Show class schedule
+4. When user clicks "Book Now" button, redirect them to a form
+*/
