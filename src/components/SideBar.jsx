@@ -3,14 +3,9 @@ import IconButton from "./IconButton";
 import { useState } from "react";
 
 export default function SideBar({ handleLogout }) {
-    const [show, setShow] = useState(false);
-
-    const handleClose = () => setShow(false);
-    const handleShow = () => setShow(true);
-
     return (
-        <Col sm={2}
-            className="d-flex flex-column justify-content-start align-items-start bg-light"
+        <Col sm={3}
+            className="d-flex flex-row justify-content-start align-items-start bg-light"
             style={{ position: "sticky", top: 0 }}
         >
             <IconButton className="bi bi-house" text="Home"isTop />

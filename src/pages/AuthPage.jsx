@@ -5,7 +5,7 @@ import{
   getAuth,
   signInWithEmailAndPassword,
 } from "firebase/auth"
-import React, { useContext, useState } from "react";
+import React, { useContext, useState, useEffect } from "react";
 import "bootstrap/dist/css/bootstrap.min.css";
 import loginImage from '../assets/loginImage.jpg'
 import { useNavigate } from "react-router-dom";
@@ -21,7 +21,11 @@ export  default function LoginPage() {
 
     const navigate = useNavigate();
     const auth = getAuth();
-    const { currentUser } = useContext(AuthContext)
+    const { currentUser } = useContext(AuthContext);
+
+    useEffect(() => {
+        if(currentUser) navigate("/home");
+    }, [currentUser, navigate]);
 
     const handleClose = () => setShowModal(null);
 
@@ -73,10 +77,10 @@ export  default function LoginPage() {
                 <h3 className="text-center mb-4">Welcome to Pilate's Studio</h3>
                 <form>
                 <div className="mb-3">
-                    <input type="email" className="form-control" id="email" placeholder="Enter email" />
+                    <input type="email" className="form-control" id="email" placeholder="Enter email" onChange={(e) => setUsername(e.target.value)}/>
                 </div>
                 <div className="mb-3">
-                    <input type="password" className="form-control" id="password" placeholder="Password" />
+                    <input type="password" className="form-control" id="password" placeholder="Password" onChange={(e) => setPassword(e.target.value)}/>
                 </div>
                 <button type="submit" className="btn btn-primary w-100 mb-4" onClick={handleLogin}>
                     Login
