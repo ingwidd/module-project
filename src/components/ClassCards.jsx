@@ -1,23 +1,58 @@
-import { Button, Card, Row, Col, Container } from 'react-bootstrap';
+import { Image, Button, Card, Col } from 'react-bootstrap';
 import beginnerImg from '../assets/beginnerImg.jpg';
+import { useContext, useState } from 'react';
+import { AuthContext } from './AuthProvider';
+import NewCardModal from './NewCardModal';
+import UpdateCardModal from './UpdateCardModal';
 
+export default function ClassCards({ lesson }) {
+    const { title, content, id: lessonId, imageUrl } = lesson;
+    const { currentUser, deleteCard } = useContext(AuthContext);
+    const userId = currentUser?.uid;
 
-export default function ClassCards() {
+    const [showNewCardModal, setShowNewCardModal] = useState(false);
+    const handleCloseNewModal = () => setShowNewCardModal(false);
+    const handleShowNewModal = () => setShowNewCardModal(true);
+
+    const [showUpdateCardModal, setShowUpdateCardModal] = useState(false);
+    const handleShowUpdateModal = () => setShowUpdateCardModal(true);
+    const handleCloseUpdateModal = () => setShowUpdateCardModal(false);
+
+    const handleDelete = () => {
+        deleteCard(lessonId);
+    };
+
     return (
-        <Container className="my-4" id="classes">
-        <h2 className="mb-4">Our Classes</h2>
-        <Row>
-          <Col md={3} className="mb-4">
-            <Card className="shadow h-100">
-              <Card.Img variant="top" src={beginnerImg} alt="Beginner Pilates" />
-              <Card.Body className="text-center">
-                <Card.Title>Beginner Pilates</Card.Title>
-                <Card.Text>Perfect for newcomers to build core strength.</Card.Text>
-                <Button variant="light" className="w-100">Book Class</Button>
-              </Card.Body>
-            </Card>
-          </Col>
-        </Row>
-      </Container>
-    )
+        <Col md={6} lg={4} className="mb-0" style={{ padding: "0 5px" }}>
+            <div 
+                style={{
+                    border: "1px solid #ccc",
+                    padding: "12px",
+                    width: "100%",
+                    borderRadius: "8px",
+                    boxShadow: "2px 2px 8px rgba(0,0,0,0.1)",
+                    marginBottom: "10px"
+                }}
+            >
+                {imageUrl && <Image src={imageUrl} style={{ width: "100%", borderRadius: "4px" }}/>}
+                <h4 className='my-2'>{title}</h4>
+                <p>{content}</p>
+                <Button variant='secondary' style={{ width: "100%" }}>Book a class</Button>
+                <Button variant='outline-secondary' className='mt-2' style={{ width: "100%" }} onClick={handleShowUpdateModal}>Edit class</Button>
+            </div>
+
+            <NewCardModal
+                show={showNewCardModal}
+                handleClose={handleCloseNewModal}
+            />
+
+            <UpdateCardModal
+                show={showUpdateCardModal}
+                handleClose={handleCloseUpdateModal}
+                lessonId={lessonId}
+                originalCardTitle={title}
+                originalCardContent={content}
+            />
+        </Col>
+    );
 }

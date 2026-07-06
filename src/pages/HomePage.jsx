@@ -1,23 +1,31 @@
 import { getAuth } from "firebase/auth";
-import { useContext } from "react";
+import { useContext, useEffect, useState } from "react";
 import { AuthContext } from "../components/AuthProvider";
-import { Container, Row, Col, Navbar, Nav } from "react-bootstrap";
+import { Button, Card, Col, Container, Navbar, Nav } from "react-bootstrap";
 import { useNavigate } from "react-router-dom";
 import ClassCards from "../components/ClassCards";
+import NewCardModal from "../components/NewCardModal";
 
 export default function HomePage() {
     const auth = getAuth();
     const navigate = useNavigate();
-    const { currentUser } = useContext(AuthContext)
+    const { currentUser, lessons } = useContext(AuthContext);
+    const [showNewCardModal, setShowNewCardModal] = useState(false);
 
-    if (!currentUser) {
-        navigate("/login")
-    }
+    useEffect(() => {
+        if (!currentUser) {
+            navigate("/login");
+        }
+    }, [currentUser, navigate]);
 
     const handleLogout = async () => {
         await auth.signOut();
         navigate('/login');
     };
+
+    const handleSchedule = async () => {
+        navigate('/schedule');
+    }
 
     return (
         <div>
@@ -29,9 +37,8 @@ export default function HomePage() {
                     <Navbar.Toggle aria-controls="basic-navbar-nav" />
                     <Navbar.Collapse id="basic-navbar-nav">
                         <Nav className="ms-auto">
-                        <Nav.Link href="#classes">Classes</Nav.Link>
-                        <Nav.Link href="#schedule">Schedule</Nav.Link>
-                        <Nav.Link href="#pricing">Pricing</Nav.Link>
+                        <Nav.Link>Schedule</Nav.Link>
+                        <Nav.Link>Pricing</Nav.Link>
                         <Nav.Link onClick={handleLogout}>Logout</Nav.Link>
                         </Nav>
                     </Navbar.Collapse>
@@ -50,7 +57,32 @@ export default function HomePage() {
                 <button className="btn btn-light btn-lg mt-3">Book a Class</button>
             </div>
             <br />
-            <ClassCards />
+            <h2 style={{ marginLeft: "50px" }}>Our Classes</h2>
+            <Container className="my-4">
+                <div className="row" style={{ margin: "0 -5px" }}>
+                    {lessons.map((lesson) => (
+                        <ClassCards key={lesson.id} lesson={lesson} />
+                    ))}
+
+                    <Col md={6} lg={4} className="mb-0" style={{ padding: "0 5px" }}>
+                        <Card
+                            className="shadow h-100 d-flex align-items-center justify-content-center"
+                            style={{ minHeight: "220px", cursor: "pointer", borderStyle: "dashed", borderWidth: "2px", marginBottom: "10px" }}
+                            onClick={() => setShowNewCardModal(true)}
+                        >
+                            <Card.Body className="text-center">
+                                <div className="display-1 text-muted">+</div>
+                                <p className="mt-2 mb-0">Add another class</p>
+                            </Card.Body>
+                        </Card>
+                    </Col>
+                </div>
+            </Container>
+
+            <NewCardModal
+                show={showNewCardModal}
+                handleClose={() => setShowNewCardModal(false)}
+            />
         </div>
     );
 }
@@ -59,5 +91,5 @@ export default function HomePage() {
 1. Add button for making class cards
 2. Make sure user's home page cannot add cards
 3. Show class schedule
-4. When user clicks "Book Now" button, redirect them to a form
+4. When user clicks "Book Now" button, open a form modal
 */
