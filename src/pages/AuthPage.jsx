@@ -63,7 +63,7 @@ export  default function LoginPage() {
             console.error(error);
         }
     }
-
+console.log(import.meta.env.VITE_API_KEY);
     return (
         <div
             className="d-flex justify-content-center align-items-center vh-100"
